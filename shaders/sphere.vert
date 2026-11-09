@@ -3,16 +3,31 @@
 layout(location = 0) in vec3 inPosition;
 layout(location = 1) in vec3 inNormal;
 
-layout(push_constant) uniform PushConstants {
-    mat4 mvp;
-    vec4 color;
-} pc;
+layout(set = 0, binding = 0) uniform SceneData {
+    mat4 viewProjection;
+    vec4 cameraPosition;
+    vec4 ambient;
+    vec4 directionalDirection;
+    vec4 directionalColor;
+    ivec4 lightCounts;
+} scene;
 
-layout(location = 0) out vec3 fragNormal;
+layout(set = 1, binding = 0) uniform ModelData {
+    mat4 model;
+    mat4 normalMatrix;
+    vec4 albedo;
+    vec4 specular;
+} modelData;
+
+layout(location = 0) out vec3 fragWorldPos;
+layout(location = 1) out vec3 fragWorldNormal;
 
 void main()
 {
-    gl_Position = pc.mvp * vec4(inPosition, 1.0);
+    vec4 worldPosition = modelData.model * vec4(inPosition, 1.0);
 
-    fragNormal = inNormal;
+    fragWorldPos = worldPosition.xyz;
+    fragWorldNormal = mat3(modelData.normalMatrix) * inNormal;
+
+    gl_Position = scene.viewProjection * worldPosition;
 }
